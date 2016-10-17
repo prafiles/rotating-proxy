@@ -1,28 +1,26 @@
-FROM ubuntu:14.04
-MAINTAINER Matthias Kadenbach <matthias.kadenbach@gmail.com>
+FROM resin/rpi-raspbian:latest
+MAINTAINER prafiles
 
-RUN echo 'deb http://deb.torproject.org/torproject.org trusty main' | tee /etc/apt/sources.list.d/torproject.list
-RUN gpg --keyserver keys.gnupg.net --recv 886DDD89
-RUN gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
-
-RUN echo 'deb http://ppa.launchpad.net/brightbox/ruby-ng/ubuntu trusty main' | tee /etc/apt/sources.list.d/ruby.list
-RUN gpg --keyserver keyserver.ubuntu.com --recv C3173AA6
-RUN gpg --export 80f70e11f0f0d5f10cb20e62f5da5f09c3173aa6 | apt-key add -
+ENV tors=16
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN apt-get update && \
-    apt-get install -y tor polipo haproxy ruby2.1 libssl-dev wget curl build-essential zlib1g-dev libyaml-dev libssl-dev && \
-    ln -s /lib/x86_64-linux-gnu/libssl.so.1.0.0 /lib/libssl.so.1.0.0
+    apt-get upgrade -y && \
+    apt-get install -y tor polipo haproxy libssl-dev wget curl git build-essential zlib1g-dev libyaml-dev libssl-dev
 
 RUN update-rc.d -f tor remove
 RUN update-rc.d -f polipo remove
 
-RUN gem install excon -v 0.44.4
+RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 && \
+    curl -L https://get.rvm.io | bash -s stable --ruby    
 
 ADD start.rb /usr/local/bin/start.rb
 RUN chmod +x /usr/local/bin/start.rb
 
 ADD haproxy.cfg.erb /usr/local/etc/haproxy.cfg.erb
 
+RUN bash -c "source /usr/local/rvm/scripts/rvm && gem install excon -v 0.44.4"
+
 EXPOSE 5566 1936
 
-CMD /usr/local/bin/start.rb
+CMD bash -c "source /usr/local/rvm/scripts/rvm && ruby /usr/local/bin/start.rb"
