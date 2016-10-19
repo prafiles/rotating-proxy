@@ -32,12 +32,16 @@ listen stats *:1936
 frontend rotating_proxies
   bind *:<%= port %>
   default_backend tor
-  option http_proxy
+  #option http_proxy
+  mode http
+  option httpclose
+  option http-use-proxy-header
 
 backend tor
-  option http_proxy
-  balance leastconn # http://cbonte.github.io/haproxy-dconv/configuration-1.5.html#balance
+  #option http_proxy
 
   <% backends.each do |b| %>
   server <%= b[:name] %><%= b[:port] %> <%= b[:addr] %>:<%= b[:port] %>
   <% end %>
+
+  balance roundrobin

@@ -174,7 +174,7 @@ module Service
     alias_method :port, :polipo_port
 
     def test_url
-      ENV['test_url'] || 'http://echoip.com'
+      ENV['test_url'] || 'http://header.jsontest.com'
     end
 
     def working?
